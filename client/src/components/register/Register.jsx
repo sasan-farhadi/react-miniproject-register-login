@@ -2,25 +2,51 @@ import MainLayout from "../layouts/main-layout/MainLayout"
 import { Formik, Form, Field, ErrorMessage } from "formik"
 import * as yup from 'yup'
 import Error from "../error/Error"
+import { useEffect, useState } from "react"
 
 const Register = () => {
 
-    const def = { fname: '', lname: '', username: '', email: '', password: '', repassword: '' }
+    let [provinceName, setProvinceName] = useState([])
+    useEffect(() => {
+        fetch('/provinces').then(x => x.json()).then(x => {
+            setProvinceName(x.provinces)
+        })
+    }, [])
+
+    const def = { fname: '', lname: '', username: '', email: '', password: '', passwordConfirm: '' }
 
     const rules = yup.object({
         fname: yup.string().required('نام اجباریست'),
         lname: yup.string().required('نام خانوادگی اجباریست'),
         username: yup.string().required('نام کاربری را وارد کنید'),
-        email: yup.string().required('ایمیل را وارد کنید'),
-        password: yup.string().required('پسوورد را وارد کنید').matches(),
-        repassword: yup.string().label('').required('تکرار پسوورد را وارد کنید').oneOf([yup.ref('password'), null], 'پسوورد یکسان نیست'),
+        email: yup.string().required('ایمیل را وارد کنید').email('فرمت ایمیل درست نیست'),
+        password: yup.string().required('رمزعبور را وارد کنید'),
+        passwordConfirm: yup.string().required('تکرار رمزعبور را وارد کنید').oneOf([yup.ref('password'), null], 'رمزعبور یکسان نیست'),
     })
 
+    let [cityId, setCityId] = useState()
+    let [msg, setMsg] = useState('')
+    const btnSave = values => {
+        if (cityId == null) {
+            setMsg('استان و شهر را انتخاب کنید')
+            return
+        }
+        setMsg('')
 
-    const btnSave = () => {
-        
+        fetch('/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(values)
+        })
     }
 
+    let [citiesName, setCitiesName] = useState([])
+    const provinceId = event => {
+        let provinceId = event.target.value
+        fetch(`/cities/${provinceId}`).then(x => x.json()).then(x => {
+            setCitiesName(x.cities)
+        })
+    }
     return (
         <>
             <MainLayout>
@@ -29,7 +55,7 @@ const Register = () => {
                         <div className="container bg-white rounded p-4">
                             <h3>فرم ثبت نام</h3>
                             <div className="row">
-                                <div className="col-md-5 form-group">
+                                <div className="col-md-6 form-group">
                                     <div className="mt-3">
                                         <label htmlFor="fname">نام</label>
                                         <Field className="form-control" type="text" name="fname" id="fname" placeholder="نام خود را وارد کنید" />
@@ -53,29 +79,39 @@ const Register = () => {
                                     <hr />
                                     <div className="mt-3">
                                         <label htmlFor="password">رمز عبور</label>
-                                        <Field className="form-control" type="password" name="password" id="password" placeholder="پسوورد خود را وارد کنید" />
+                                        <Field className="form-control" type="password" name="password" id="password" placeholder="رمزعبور خود را وارد کنید" />
                                         <ErrorMessage component={Error} name="password" ></ErrorMessage>
-                                        <Field className="form-control mt-3" type="password" name="repassword" id="repassword" placeholder="تکرار پسوورد خود را وارد کنید" />
-                                        <ErrorMessage component={Error} name="repassword" ></ErrorMessage>
+                                        <Field className="form-control mt-3" type="password" name="passwordConfirm" id="passwordConfirm" placeholder="تکرار رمزعبور خود را وارد کنید" />
+                                        <ErrorMessage component={Error} name="passwordConfirm" ></ErrorMessage>
                                     </div>
                                     <hr />
                                     <div className="mt-3">
                                         <label htmlFor="province">استان/شهرستان</label>
-                                        <select name="province" id="province" className="form-control">
-                                            <option value="1">تهران</option>
-                                            <option value="1">شیراز</option>
-                                            <option value="1">اصفهان</option>
-                                            <option value="1">مشهد</option>
-                                            <option value="1">تبریز</option>
+                                        <select name="province" id="province" className="form-control" onChange={provinceId}>
+                                            <option value="-1" selected disabled>انتخاب کنید</option>
+                                            {
+                                                provinceName.map(x => {
+                                                    return (
+                                                        <option value={x.Id}>{x.province}</option>
+                                                    )
+                                                })
+                                            }
                                         </select>
                                     </div>
                                     <div className="mt-3">
-                                        <select name="city" id="city" className="form-control">
-                                            <option value="1">ورامین</option>
-                                            <option value="1">دماوند</option>
+                                        <select name="city" id="city" className="form-control" onChange={(event) => setCityId(event.target.value)}>
+                                            <option value={-1} selected disabled>انتخاب کنید</option>
+                                            {
+                                                citiesName.map(x => {
+                                                    return (
+                                                        <option value={x.Id}>{x.city}</option>
+                                                    )
+                                                })
+                                            }
                                         </select>
                                     </div>
-                                </div>
+                                    <p className="text-danger">{msg}</p>
+                                    </div>
                                 <div className="col-md-6 mt-3">
                                     <div>
                                         <label htmlFor="image">بارگزاری تصویر</label>
