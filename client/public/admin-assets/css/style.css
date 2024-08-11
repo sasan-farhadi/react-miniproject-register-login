@@ -1,0 +1,6 @@
+.contents {
+    width: 150px;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 13px;
+}
