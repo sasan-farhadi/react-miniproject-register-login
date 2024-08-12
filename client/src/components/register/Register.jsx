@@ -1,4 +1,5 @@
 import MainLayout from "../layouts/main-layout/MainLayout"
+// import AdminLayout from "../layouts/admin-layout/AdminLayout"
 import { Formik, Form, Field, ErrorMessage } from "formik"
 import * as yup from 'yup'
 import Error from "../error/Error"
@@ -108,8 +109,8 @@ const Register = () => {
     }
 
     return (
-        <>
-            <MainLayout>
+        <MainLayout>
+            <>
                 <Formik initialValues={def} validationSchema={rules} onSubmit={btnSave}>
                     <Form>
                         <div className="container bg-white rounded p-4">
@@ -202,8 +203,8 @@ const Register = () => {
                         </div>
                     </Form>
                 </Formik>
-            </MainLayout>
-        </>
+            </>
+        </MainLayout>
     )
 }
 export default Register

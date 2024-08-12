@@ -11,6 +11,10 @@ sql.connect({
     options: { trustedConnection: 'true' }
 })
 
+
+
+
+//get
 app.get('/provinces', (req, res) => {
     sql.query('SELECT * FROM tb_provinces', (err, data) => {
         if (err) return res.send({ provinces: [] })
@@ -34,6 +38,20 @@ app.get('/favourites', (req, res) => {
 })
 
 
+app.get('/userData', (req, res) => {
+    sql.query(`SELECT * ,(SELECT tb_cities.city FROM tb_cities WHERE tb_cities.Id = tb_register.city) as cityname, 
+ (SELECT tb_provinces.province FROM tb_provinces WHERE tb_provinces.Id = 
+ (SELECT tb_cities.provinceId FROM tb_cities WHERE tb_cities.Id = tb_register.city)) as provincename FROM tb_register`, (err, data) => {
+        if (err) return res.send({ userData: [] })
+        else return res.send({ userData: data.recordset })
+    })
+})
+
+
+
+
+
+//post
 app.post('/register', (req, res) => {
     console.log('############## register')
     let { fname, lname, username, email, password, passwordConfirm, city, favourites } = req.body
@@ -59,5 +77,7 @@ app.post('/insertImage', memory.single('file'), (req, res) => {
         else return res.send({ result: true })
     })
 })
+
+
 
 app.listen(5000, () => { console.log('connected success...') })

@@ -8,6 +8,7 @@ import Doshboard from './components/doshboard/Doshboard'
 import Register from './components/register/Register'
 import Login from './components/login/Login'
 import Article from './components/article/Article'
+import User from './components/list/User';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -18,7 +19,8 @@ root.render(
         <Route path='/register' element={<Register />} />
         <Route path='/login' element={<Login />} />
         <Route path='/admin' element={<Doshboard />} />
-        <Route path='/admin/article' element={<Article />} />
+        <Route path='/article' element={<Article />} />
+        <Route path='/user' element={<User />} />
       </Routes>
     </BrowserRouter >
   </>

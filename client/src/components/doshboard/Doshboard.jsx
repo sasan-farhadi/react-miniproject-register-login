@@ -1,8 +1,11 @@
+import AdminLayout from "../layouts/admin-layout/AdminLayout"
 const Doshboard = () => {
     return (
-        <div>
-            <h1>Doshboard</h1>
-        </div>
+        <AdminLayout>
+            <div>
+                <h1>Doshboard</h1>
+            </div>
+        </AdminLayout>
     )
 }
 export default Doshboard
