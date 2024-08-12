@@ -12,6 +12,7 @@
     "express": "^4.19.2",
     "msnodesqlv8": "^4.2.1",
     "mssql": "^11.0.1",
+    "multer": "^1.4.5-lts.1",
     "nodemon": "^3.1.4"
   }
 }

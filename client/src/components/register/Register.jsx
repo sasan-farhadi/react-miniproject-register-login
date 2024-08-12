@@ -5,16 +5,19 @@ import Error from "../error/Error"
 import { useEffect, useState } from "react"
 
 const Register = () => {
-
     let [provinceName, setProvinceName] = useState([])
+    let [favourites, setFavourites] = useState([])
     useEffect(() => {
         fetch('/provinces').then(x => x.json()).then(x => {
             setProvinceName(x.provinces)
         })
+
+        fetch('/favourites').then(x => x.json()).then(x => {
+            setFavourites(x.favourite)
+        })
     }, [])
 
     const def = { fname: '', lname: '', username: '', email: '', password: '', passwordConfirm: '' }
-
     const rules = yup.object({
         fname: yup.string().required('نام اجباریست'),
         lname: yup.string().required('نام خانوادگی اجباریست'),
@@ -26,17 +29,40 @@ const Register = () => {
 
     let [cityId, setCityId] = useState()
     let [msg, setMsg] = useState('')
+    let [msgImage, setMsgImage] = useState('')
+
     const btnSave = values => {
+        values.city = cityId
+        values.favourites = favouriteCheck
+
         if (cityId == null) {
             setMsg('استان و شهر را انتخاب کنید')
             return
         }
         setMsg('')
 
+        if (image == '') {
+            setMsgImage('تصویر را انتخاب کنید')
+            return
+        }
+        setMsgImage('')
+
+
         fetch('/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(values)
+        }).then(x => x.json()).then(x => {
+            let formData = new FormData()
+            formData.append('file', image)
+            formData.append('id', x.id)
+            fetch('/insertImage', {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors'
+            }).then(x => x.json()).then(x => {
+                x.result ? alert("اطلاعات با موفقت ذخیره شد") : alert("خطا در ثبت اطلاعات")
+            })
         })
     }
 
@@ -47,6 +73,40 @@ const Register = () => {
             setCitiesName(x.cities)
         })
     }
+
+    let [image, setImage] = useState()
+    const onImage = event => {
+        let parts = event.target.files[0].name.split('.')
+        if (parts[parts.length - 1].toLowerCase() != 'jpg') {
+            setMsgImage('فرمت عکس صحیح نیست')
+            setImage('')
+            return
+        } else if (event.target.files[0].size > 1 * 1024 * 1024) {
+            setMsgImage('تصویر کمتر از یک مگابایت باشد')
+            setImage('')
+            return
+        }
+        setMsgImage('')
+
+        let reader = new FileReader()
+        reader.readAsDataURL(event.target.files[0])
+        reader.onloadend = x => {
+            setImage(x.target.result)
+        }
+    }
+
+    let [favouriteCheck, setFavouriteCheck] = useState([])
+    const onFavourites = event => {
+        let favouriteId = Number(event.target.value)
+        if (event.target.checked == true) {
+            favouriteCheck.push(favouriteId)
+        } else {
+            let index = favouriteCheck.findIndex(x => x === favouriteId)
+            favouriteCheck.splice(index, 1)
+            setFavouriteCheck([...favouriteCheck])
+        }
+    }
+
     return (
         <>
             <MainLayout>
@@ -111,29 +171,28 @@ const Register = () => {
                                         </select>
                                     </div>
                                     <p className="text-danger">{msg}</p>
-                                    </div>
+                                </div>
                                 <div className="col-md-6 mt-3">
                                     <div>
-                                        <label htmlFor="image">بارگزاری تصویر</label>
-                                        <input type="file" src="" className="form-control" />
+                                        <label htmlFor="image">بارگذاری تصویر</label>
+                                        <input type="file" src="" className="form-control" onChange={onImage} />
+                                        <p className="text-danger">{msgImage}</p>
                                     </div>
                                     <div className="p-4">
-                                        <img src="main-assets/images/profile.jpg" alt="" className="rounded" width={100} height={100} />
+                                        <img src={image} alt="" className="rounded" width={100} height={100} />
                                     </div>
                                     <hr />
-                                    <label htmlFor="favourite">علاقه مندی ها</label>
-                                    <div className="mt-3">
-                                        <input type="checkbox" name="" id="1" />
-                                        <label htmlFor="1" className="mr-2">ورزشی</label>
-                                    </div>
-                                    <div className="mt-1">
-                                        <input type="checkbox" name="" id="2" />
-                                        <label htmlFor="2" className="mr-2">سیاسی</label>
-                                    </div>
-                                    <div className="mt-1">
-                                        <input type="checkbox" name="" id="3" />
-                                        <label htmlFor="3" className="mr-2">برنامه نویسی</label>
-                                    </div>
+                                    <label className="mb-3" htmlFor="favourite">علاقه مندی ها</label>
+                                    {
+                                        favourites.map(x => {
+                                            return (
+                                                <div className="mt-1">
+                                                    <input type="checkbox" name="" id={x.Id} value={x.Id} onChange={onFavourites} />
+                                                    <label htmlFor={x.Id} className="mr-2">{x.favourite}</label>
+                                                </div>
+                                            )
+                                        })
+                                    }
                                     <hr />
                                     <div className="button">
                                         <button className="btn btn-primary form-control mt-3">ثبت نام</button>

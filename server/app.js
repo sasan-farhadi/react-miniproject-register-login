@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 app.use(express.json())
 const sql = require('mssql/msnodesqlv8')
-
+const multer = require('multer')
 
 sql.connect({
     server: '.',
@@ -26,12 +26,36 @@ app.get('/cities/:provinceId', (req, res) => {
     })
 })
 
+app.get('/favourites', (req, res) => {
+    sql.query('SELECT * FROM tb_favourite', (err, data) => {
+        if (err) return res.send({ favourite: [] })
+        else return res.send({ favourite: data.recordset })
+    })
+})
+
 
 app.post('/register', (req, res) => {
-    let { fname, lname, username, email, password, passwordConfirm } = req.body
-    sql.query(`INSERT INTO tb_register (fname , lname , username , email , password , passwordConfirm) 
-        VALUES ('${fname}', '${lname}', '${username}', '${email}', '${password}', '${passwordConfirm}')`, (err, data) => {
-        if (err) console.log(err)
+    console.log('############## register')
+    let { fname, lname, username, email, password, passwordConfirm, city, favourites } = req.body
+    sql.query(`INSERT INTO tb_register (fname , lname , username , email , password , passwordConfirm,city ,favourite) 
+        VALUES ('${fname}', '${lname}', '${username}', '${email}', '${password}', '${passwordConfirm}' , '${city}','${favourites}');
+        SELECT @@IDENTITY AS Id`, (err, data) => {
+        if (err) return res.send({ id: -1 })
+        else return res.send({ id: data.recordset[0].Id })
+    })
+})
+
+
+let memory = multer({
+    limits: { fileSize: 1 * 1024 * 1024 },
+    storage: multer.memoryStorage()
+})
+
+app.post('/insertImage', memory.single('file'), (req, res) => {
+    console.log('########### image')
+    let { id, file } = req.body
+    sql.query(`UPDATE tb_register SET image='${file}' WHERE Id=${id}`, (err, data) => {
+        if (err) return res.send({ result: false })
         else return res.send({ result: true })
     })
 })
